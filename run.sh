@@ -9,3 +9,4 @@ if [ ! -f tools/robot.jar ]; then
 fi
 python3 scripts/validate.py | tee output/validation-results.txt
 python3 scripts/asof_query.py | tee output/asof_query_output.txt
+python3 scripts/leakage_check.py | tee output/leakage_check.txt

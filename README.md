@@ -19,6 +19,7 @@ This repository holds the ontology excerpt submitted with a Phase 1 concept pape
 | `tests/positive/` | One variant that must stay consistent and yield inferred ordering between statements. |
 | `scripts/validate.py` | Runs pySHACL, HermiT (through Owlready2) and ROBOT (OWL API) on the ontology and on every test. |
 | `scripts/asof_query.py` | Runs the as-of SPARQL query over the worked example for five (*k*, *v*) pairs. |
+| `scripts/leakage_check.py` | Runs the same as-of query at every interval boundary in the example, and one second either side, and fails if any answer uses a statement that was not yet in the record, or was already withdrawn, at the query's record date. It also checks each answer against a separate Python version of the interval rule. |
 | `output/` | The results of the last run. |
 
 ## Worked example
@@ -39,7 +40,7 @@ pip install -r requirements.txt
 ./run.sh
 ```
 
-`run.sh` downloads ROBOT 1.9.11 into `tools/` on first use, then writes both result files to `output/`.
+`run.sh` downloads ROBOT 1.9.11 into `tools/` on first use, then writes the three result files to `output/`.
 
 ## Expected results
 
@@ -48,6 +49,7 @@ pip install -r requirements.txt
 - ROBOT: the file is in the OWL 2 DL profile.
 - Negative tests: interval order, leakage, record-before-source and supersede order are caught by SHACL. An ended open interval, a reversed supersession and an assignment with two statuses make the ontology inconsistent under HermiT.
 - Positive test: each of the three BQ.1.1 statements is inferred to be valid before, and valid disjoint from, the prediction statement.
+- Leakage check: 648 as-of queries (2 subjects, 18 record dates, 18 valid dates), no leaked or withdrawn statement, and every answer matches the Python version. A deliberately broken query with the record-date filter removed fails the check.
 
 ## Reused vocabularies
 

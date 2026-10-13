@@ -1,0 +1,2 @@
+statements 6, subjects 2, record-time cuts 18, valid-time cuts 18, queries 648
+leakage check: PASS
