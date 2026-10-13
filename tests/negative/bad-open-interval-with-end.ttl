@@ -1,0 +1,6 @@
+@prefix time: <http://www.w3.org/2006/time#> .
+@prefix ex:   <https://w3id.org/asof-kg/example#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+# Contradiction: ex:vt-eua-open is declared open-ended, here it is given an end.
+ex:vt-eua-open time:hasEnd ex:i-2022-11-30 .

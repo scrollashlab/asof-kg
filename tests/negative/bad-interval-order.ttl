@@ -1,0 +1,5 @@
+@prefix time: <http://www.w3.org/2006/time#> .
+@prefix ex:   <https://w3id.org/asof-kg/example#> .
+@prefix asof: <https://w3id.org/asof-kg/ontology#> .
+# Interval that ends before it begins.
+ex:vt-bad a asof:ValidTimeInterval ; time:hasBeginning ex:i-2022-11-30 ; time:hasEnd ex:i-2022-02-11 .

@@ -1,0 +1,5 @@
+@prefix asof: <https://w3id.org/asof-kg/ontology#> .
+@prefix ex:   <https://w3id.org/asof-kg/example#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+# The Nov 11 Nowcast statement is wrongly linked to the Dec 2 release.
+ex:share-bq11-nowcast prov:wasDerivedFrom ex:cdc-release-2022-12-02 .

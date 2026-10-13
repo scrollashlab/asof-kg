@@ -1,0 +1,4 @@
+@prefix time: <http://www.w3.org/2006/time#> .
+@prefix ex:   <https://w3id.org/asof-kg/example#> .
+# The surveillance week lies before the prediction interval; the reasoner should derive validBefore between the statements.
+ex:week-ending-2022-11-12 time:intervalBefore ex:vt-pred .

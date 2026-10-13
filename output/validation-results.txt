@@ -1,0 +1,30 @@
+triples 772
+BASE SHACL conforms: True []
+BASE HermiT: CONSISTENT
+decision-2022-10-15 types: ['Instant', 'InstantInBebtelovimabWindow']
+v2 supersedesTransitively: []
+v2 types: ['ExpectedActivityRevoked', 'CurrentStatement']
+inferred CurrentStatement: ['pred-bebtelovimab-loss', 'share-bq11-weighted', 'stmt-bebtelovimab-eua-v2']
+inferred NoLongerCurrentStatement: ['share-bq11-nowcast', 'share-bq11-nowcast-rev', 'stmt-bebtelovimab-eua']
+weighted supersedesTransitively: ['share-bq11-nowcast']
+nowcast validDisjointFrom: []
+bad-interval-order.ttl | SHACL conforms: False ['Interval ends before or when it begins.'] | HermiT: CONSISTENT
+bad-leakage.ttl | SHACL conforms: False ["Prediction used an input that entered the record after the prediction's snapshot cutoff (temporal leakage)."] | HermiT: CONSISTENT
+bad-open-interval-with-end.ttl | SHACL conforms: True [] | HermiT: INCONSISTENT
+bad-record-before-source.ttl | SHACL conforms: False ['Statement enters the record before the source record it is derived from was published (record-time leakage).'] | HermiT: CONSISTENT
+bad-supersede-self-inverse.ttl | SHACL conforms: False ['A statement cannot supersede a statement that entered the record later than it did.'] | HermiT: INCONSISTENT
+bad-two-statuses.ttl | SHACL conforms: True [] | HermiT: INCONSISTENT
+--- positive tests
+chain test HermiT: CONSISTENT
+share-bq11-nowcast validBefore -> ['pred-bebtelovimab-loss'] | validDisjointFrom -> ['pred-bebtelovimab-loss']
+share-bq11-nowcast-rev validBefore -> ['pred-bebtelovimab-loss'] | validDisjointFrom -> ['pred-bebtelovimab-loss']
+share-bq11-weighted validBefore -> ['pred-bebtelovimab-loss'] | validDisjointFrom -> ['pred-bebtelovimab-loss']
+--- OWL API / ROBOT (full file, SHACL triples included)
+OWL 2 DL profile: IN PROFILE
+ROBOT HermiT (base): CONSISTENT
+bad-interval-order.ttl | ROBOT HermiT: CONSISTENT
+bad-leakage.ttl | ROBOT HermiT: CONSISTENT
+bad-open-interval-with-end.ttl | ROBOT HermiT: INCONSISTENT
+bad-record-before-source.ttl | ROBOT HermiT: CONSISTENT
+bad-supersede-self-inverse.ttl | ROBOT HermiT: INCONSISTENT
+bad-two-statuses.ttl | ROBOT HermiT: INCONSISTENT

@@ -1,0 +1,4 @@
+@prefix asof: <https://w3id.org/asof-kg/ontology#> .
+@prefix ex:   <https://w3id.org/asof-kg/example#> .
+# Contradiction: supersedes is asymmetric.
+ex:stmt-bebtelovimab-eua asof:supersedes ex:stmt-bebtelovimab-eua-v2 .

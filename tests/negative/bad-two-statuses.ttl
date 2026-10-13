@@ -1,0 +1,4 @@
+@prefix asof: <https://w3id.org/asof-kg/ontology#> .
+@prefix ex:   <https://w3id.org/asof-kg/example#> .
+# Contradiction: one assignment carries two different status values.
+ex:status-v1-superseded asof:assignsStatus asof:Supported .

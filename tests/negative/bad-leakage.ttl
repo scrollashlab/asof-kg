@@ -1,0 +1,4 @@
+@prefix asof: <https://w3id.org/asof-kg/ontology#> .
+@prefix ex:   <https://w3id.org/asof-kg/example#> .
+# Leakage: the 2022-11-15 prediction also uses the revised estimate first published 2022-12-02.
+ex:pred-bebtelovimab-loss asof:usedInput ex:share-bq11-weighted .

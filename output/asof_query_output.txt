@@ -1,0 +1,5 @@
+subject=ex:bebtelovimab as-of(record)=2022-11-15 at(valid)=2022-12-05 -> [('stmt-bebtelovimab-eua', ''), ('pred-bebtelovimab-loss', '')]
+subject=ex:bebtelovimab as-of(record)=2022-12-05 at(valid)=2022-12-05 -> [('pred-bebtelovimab-loss', '')]
+subject=ex:BQ.1.1 as-of(record)=2022-11-15 at(valid)=2022-11-09 -> [('share-bq11-nowcast', '0.241')]
+subject=ex:BQ.1.1 as-of(record)=2022-11-20 at(valid)=2022-11-09 -> [('share-bq11-nowcast-rev', '0.184')]
+subject=ex:BQ.1.1 as-of(record)=2022-12-05 at(valid)=2022-11-09 -> [('share-bq11-weighted', '0.164')]

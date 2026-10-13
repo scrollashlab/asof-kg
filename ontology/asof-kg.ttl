@@ -1,0 +1,557 @@
+@prefix asof:    <https://w3id.org/asof-kg/ontology#> .
+@prefix ex:      <https://w3id.org/asof-kg/example#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix time:    <http://www.w3.org/2006/time#> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix biolink: <https://w3id.org/biolink/vocab/> .
+@prefix obo:     <http://purl.obolibrary.org/obo/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix mesh:    <http://id.nlm.nih.gov/mesh/> .
+
+#################################################################
+# Ontology header
+#################################################################
+
+<https://w3id.org/asof-kg/ontology>
+    a owl:Ontology ;
+    owl:versionIRI <https://w3id.org/asof-kg/ontology/0.1.4> ;
+    owl:versionInfo "0.1.4" ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
+    rdfs:label "AsOf-KG ontology (excerpt)"@en ;
+    dcterms:title "AsOf-KG: a bitemporal, evidence-aware extension for Biolink knowledge graphs"@en ;
+    dcterms:description """Excerpt of the AsOf-KG ontology. Every knowledge-graph statement carries two
+independent time dimensions: valid time (when the statement holds in the world) and record time
+(when a source first made the statement available and, if applicable, when it was withdrawn or
+superseded). Intervals reuse W3C OWL-Time; provenance reuses W3C PROV-O; statements align with
+Biolink Model associations. The file contains (1) the OWL 2 DL TBox, (2) SHACL shapes for the
+numeric temporal checks that OWL cannot express, and (3) a worked example drawn from public
+U.S. Food and Drug Administration and CDC records for COVID-19 monoclonal antibodies."""@en ;
+    rdfs:seeAlso <https://www.w3.org/TR/owl-time/> , <https://www.w3.org/TR/prov-o/> ,
+                 <https://github.com/biolink/biolink-model> ,
+                 <https://www.nih.gov/challenges/its-about-time-temporal-reasoning-biomedical-knowledge-graphs-challenge> .
+
+#################################################################
+# Annotation vocabulary (declared so OWL API tools such as Protege and ROBOT read the file as OWL 2 DL)
+#################################################################
+
+dcterms:title       a owl:AnnotationProperty .
+dcterms:description a owl:AnnotationProperty .
+dcterms:license     a owl:AnnotationProperty .
+skos:definition     a owl:AnnotationProperty .
+skos:exactMatch     a owl:AnnotationProperty .
+skos:closeMatch     a owl:AnnotationProperty .
+skos:broadMatch     a owl:AnnotationProperty .
+# SHACL terms: to an OWL reasoner the shapes below are annotated individuals with no logical effect;
+# SHACL engines read them as shapes.
+sh:NodeShape a owl:Class . sh:SPARQLConstraint a owl:Class .
+sh:targetClass a owl:AnnotationProperty . sh:targetSubjectsOf a owl:AnnotationProperty .
+sh:sparql a owl:AnnotationProperty . sh:select a owl:AnnotationProperty . sh:message a owl:AnnotationProperty .
+sh:prefixes a owl:AnnotationProperty . sh:declare a owl:AnnotationProperty .
+sh:prefix a owl:AnnotationProperty . sh:namespace a owl:AnnotationProperty .
+sh:property a owl:AnnotationProperty . sh:path a owl:AnnotationProperty . sh:lessThanOrEquals a owl:AnnotationProperty .
+
+#################################################################
+# External terms used (declared so the file is self-contained)
+#################################################################
+
+time:TemporalEntity a owl:Class ; rdfs:label "temporal entity (OWL-Time)"@en .
+time:Instant        a owl:Class ; rdfs:label "instant (OWL-Time)"@en ; rdfs:subClassOf time:TemporalEntity .
+time:Interval       a owl:Class ; rdfs:label "interval (OWL-Time)"@en ; rdfs:subClassOf time:TemporalEntity .
+time:ProperInterval a owl:Class ; rdfs:label "proper interval (OWL-Time)"@en ; rdfs:subClassOf time:Interval .
+time:hasBeginning   a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:label "has beginning (OWL-Time)"@en ; rdfs:range time:Instant .
+time:hasEnd         a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:label "has end (OWL-Time)"@en ; rdfs:range time:Instant .
+time:inXSDDateTimeStamp a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:label "in XSD date-time stamp (OWL-Time)"@en ;
+    rdfs:domain time:Instant ; rdfs:range xsd:dateTimeStamp .
+time:intervalBefore a owl:ObjectProperty ; rdfs:label "interval before (OWL-Time)"@en ; rdfs:domain time:ProperInterval ; rdfs:range time:ProperInterval .
+time:intervalAfter  a owl:ObjectProperty ; rdfs:label "interval after (OWL-Time)"@en ; owl:inverseOf time:intervalBefore .
+time:intervalMeets  a owl:ObjectProperty ; rdfs:label "interval meets (OWL-Time)"@en ; rdfs:domain time:ProperInterval ; rdfs:range time:ProperInterval .
+time:intervalMetBy  a owl:ObjectProperty ; rdfs:label "interval met by (OWL-Time)"@en ; owl:inverseOf time:intervalMeets .
+time:intervalDisjoint a owl:ObjectProperty , owl:SymmetricProperty ; rdfs:label "interval disjoint (OWL-Time)"@en .
+time:intervalBefore rdfs:subPropertyOf time:intervalDisjoint .
+time:intervalMeets  rdfs:subPropertyOf time:intervalDisjoint .
+
+prov:Entity   a owl:Class ; rdfs:label "entity (PROV-O)"@en .
+prov:Agent    a owl:Class ; rdfs:label "agent (PROV-O)"@en .
+prov:wasDerivedFrom   a owl:ObjectProperty ; rdfs:label "was derived from (PROV-O)"@en .
+prov:wasAttributedTo  a owl:ObjectProperty ; rdfs:label "was attributed to (PROV-O)"@en .
+prov:generatedAtTime  a owl:DatatypeProperty ; rdfs:label "generated at time (PROV-O)"@en .
+
+biolink:Association a owl:Class ; rdfs:label "association (Biolink)"@en ;
+    rdfs:comment "Biolink Model association (reified edge)."@en .
+biolink:NamedThing  a owl:Class ; rdfs:label "named thing (Biolink)"@en .
+biolink:ChemicalEntity a owl:Class ; rdfs:label "chemical entity (Biolink)"@en ; rdfs:subClassOf biolink:NamedThing .
+biolink:Disease     a owl:Class ; rdfs:label "disease (Biolink)"@en ; rdfs:subClassOf biolink:NamedThing .
+biolink:subject     a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:label "subject (Biolink)"@en ; rdfs:domain biolink:Association .
+biolink:object      a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:label "object (Biolink)"@en ; rdfs:domain biolink:Association .
+biolink:predicate   a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:label "predicate (Biolink)"@en ; rdfs:domain biolink:Association .
+biolink:treats      a owl:ObjectProperty ; rdfs:label "treats (Biolink)"@en .
+biolink:knowledge_level a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:label "knowledge level (Biolink)"@en .
+biolink:knowledge_assertion a owl:NamedIndividual ; rdfs:label "knowledge assertion (Biolink KnowledgeLevelEnum)"@en .
+biolink:prediction a owl:NamedIndividual ; rdfs:label "prediction (Biolink KnowledgeLevelEnum)"@en .
+biolink:statistical_association a owl:NamedIndividual ; rdfs:label "statistical association (Biolink KnowledgeLevelEnum)"@en .
+[] a owl:AllDifferent ; owl:distinctMembers ( biolink:knowledge_assertion biolink:prediction biolink:statistical_association ) .
+
+# Basic Formal Ontology (BFO 2020, ISO/IEC 21838-2) alignment: OWL-Time intervals and instants are BFO temporal
+# regions, and "occurs during" specialises BFO "occupies temporal region".
+obo:BFO_0000003 a owl:Class ; rdfs:label "occurrent (BFO)"@en .
+obo:BFO_0000015 a owl:Class ; rdfs:label "process (BFO)"@en ; rdfs:subClassOf obo:BFO_0000003 .
+obo:BFO_0000008 a owl:Class ; rdfs:label "temporal region (BFO)"@en ; rdfs:subClassOf obo:BFO_0000003 .
+obo:BFO_0000202 a owl:Class ; rdfs:label "temporal interval (BFO)"@en ; rdfs:subClassOf obo:BFO_0000008 .
+obo:BFO_0000203 a owl:Class ; rdfs:label "temporal instant (BFO)"@en ; rdfs:subClassOf obo:BFO_0000008 .
+obo:BFO_0000199 a owl:ObjectProperty ; rdfs:label "occupies temporal region (BFO)"@en .
+time:ProperInterval rdfs:subClassOf obo:BFO_0000202 .
+time:Instant        rdfs:subClassOf obo:BFO_0000203 .
+
+#################################################################
+# Core classes
+#################################################################
+
+asof:TemporalStatement a owl:Class ;
+    rdfs:label "temporal statement"@en ;
+    rdfs:subClassOf biolink:Association , prov:Entity ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty asof:hasValidTime ;
+                      owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass asof:ValidTimeInterval ] ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty asof:hasRecordTime ;
+                      owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass asof:RecordTimeInterval ] ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty prov:wasDerivedFrom ;
+                      owl:someValuesFrom asof:SourceRecord ] ;
+    skos:definition """A Biolink association that is qualified by exactly one valid-time interval and exactly
+one record-time interval and that is derived from at least one dated source record."""@en .
+
+asof:ValidTimeInterval a owl:Class ;
+    rdfs:label "valid-time interval"@en ;
+    rdfs:subClassOf time:ProperInterval ;
+    skos:definition "The interval during which a statement is asserted to hold in the world."@en .
+
+asof:RecordTimeInterval a owl:Class ;
+    rdfs:label "record-time interval"@en ;
+    rdfs:subClassOf time:ProperInterval ;
+    skos:definition """The interval during which a statement was available to a reader of the graph: it begins
+when the source first published the statement and ends when the statement was withdrawn or superseded."""@en .
+
+[] a owl:AllDisjointClasses ;
+   owl:members ( asof:ValidTimeInterval asof:RecordTimeInterval ) .
+
+asof:OpenInterval a owl:Class ;
+    rdfs:label "open-ended interval"@en ;
+    rdfs:subClassOf time:ProperInterval ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty time:hasEnd ;
+                      owl:maxCardinality "0"^^xsd:nonNegativeInteger ] ;
+    skos:definition "An interval whose end has not occurred as of the latest record time. Asserting an end for it is a logical contradiction."@en .
+
+asof:ClosedInterval a owl:Class ;
+    rdfs:label "closed interval"@en ;
+    owl:equivalentClass [ a owl:Class ; owl:intersectionOf ( time:ProperInterval
+        [ a owl:Restriction ; owl:onProperty time:hasEnd ; owl:someValuesFrom time:Instant ] ) ] ;
+    owl:disjointWith asof:OpenInterval ;
+    skos:definition "A proper interval that has an end instant. Defined, so the reasoner classifies intervals into it."@en .
+
+asof:CurrentStatement a owl:Class ;
+    rdfs:label "current statement"@en ;
+    owl:equivalentClass [ a owl:Class ; owl:intersectionOf ( asof:TemporalStatement
+        [ a owl:Restriction ; owl:onProperty asof:hasRecordTime ; owl:someValuesFrom asof:OpenInterval ] ) ] ;
+    skos:definition "A statement that has not been withdrawn or superseded as of the latest record time in the graph: its record-time interval is open. Inferred by the reasoner."@en .
+
+asof:NoLongerCurrentStatement a owl:Class ;
+    rdfs:label "no-longer-current statement"@en ;
+    owl:equivalentClass [ a owl:Class ; owl:intersectionOf ( asof:TemporalStatement
+        [ a owl:Restriction ; owl:onProperty asof:hasRecordTime ; owl:someValuesFrom asof:ClosedInterval ] ) ] ;
+    owl:disjointWith asof:CurrentStatement ;
+    skos:definition "A statement that left the record (withdrawn or superseded): its record-time interval has ended. Inferred by the reasoner; the statement stays in the graph for as-of queries."@en .
+
+asof:IndeterminateInstant a owl:Class ;
+    rdfs:label "indeterminate instant"@en ;
+    rdfs:subClassOf time:Instant ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty asof:earliest ; owl:cardinality "1"^^xsd:nonNegativeInteger ] ,
+                    [ a owl:Restriction ; owl:onProperty asof:latest ;   owl:cardinality "1"^^xsd:nonNegativeInteger ] ;
+    skos:definition "An instant known only to fall between an earliest and a latest bound, such as an onset reported to the month."@en .
+
+asof:SourceRecord a owl:Class ;
+    rdfs:label "source record"@en ; skos:closeMatch obo:IAO_0000310 ;
+    rdfs:subClassOf prov:Entity ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty prov:generatedAtTime ; owl:cardinality "1"^^xsd:nonNegativeInteger ] ;
+    skos:definition "A dated, citable publication of information, such as a regulatory letter, guideline version, surveillance release or article."@en .
+
+asof:Prediction a owl:Class ;
+    rdfs:label "prediction statement"@en ;
+    rdfs:subClassOf asof:TemporalStatement ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty asof:hasCutoff ; owl:cardinality "1"^^xsd:nonNegativeInteger ] ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty biolink:knowledge_level ; owl:hasValue biolink:prediction ] ;
+    skos:definition """A statement produced by a model, including a temporal embedding model. It records the cutoff
+time of the snapshot it was computed from. Every input it used must have entered the record before that cutoff."""@en .
+
+asof:ClinicalEvent a owl:Class ;
+    rdfs:label "clinical event"@en ;
+    rdfs:subClassOf obo:BFO_0000015 ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty asof:occursDuring ;
+                      owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass time:ProperInterval ] ;
+    skos:definition "A process in a patient's care or disease course, such as a diagnosis, a dose or a test, placed on exactly one interval."@en .
+
+asof:Lineage a owl:Class ;
+    rdfs:label "pathogen lineage"@en ;
+    skos:definition "A named pathogen lineage, such as a Pango lineage of SARS-CoV-2."@en .
+
+asof:Region a owl:Class ; rdfs:label "geographic region"@en ; skos:closeMatch obo:GAZ_00000448 ;
+    skos:definition "A geographic or jurisdictional area to which a statement applies, such as a country or a public-health region."@en .
+
+asof:estimatedShare a owl:DatatypeProperty , owl:FunctionalProperty ;
+    rdfs:label "estimated share"@en ; rdfs:range xsd:decimal ; skos:closeMatch obo:STATO_0000607 ;
+    skos:definition "Estimated proportion of cases attributed to the subject lineage during the valid-time interval."@en .
+
+#################################################################
+# Epistemic status: closed set of values with time-indexed assignments
+#################################################################
+
+asof:EpistemicStatus a owl:Class ;
+    rdfs:label "epistemic status"@en ;
+    owl:equivalentClass [ a owl:Class ; owl:oneOf ( asof:Asserted asof:Supported asof:Contested
+                                                    asof:Refuted asof:Retracted asof:Superseded ) ] .
+asof:Asserted   a asof:EpistemicStatus , owl:NamedIndividual ; rdfs:label "asserted"@en .
+asof:Supported  a asof:EpistemicStatus , owl:NamedIndividual ; rdfs:label "supported"@en .
+asof:Contested  a asof:EpistemicStatus , owl:NamedIndividual ; rdfs:label "contested"@en .
+asof:Refuted    a asof:EpistemicStatus , owl:NamedIndividual ; rdfs:label "refuted"@en .
+asof:Retracted  a asof:EpistemicStatus , owl:NamedIndividual ; rdfs:label "retracted"@en .
+asof:Superseded a asof:EpistemicStatus , owl:NamedIndividual ; rdfs:label "superseded"@en .
+[] a owl:AllDifferent ;
+   owl:distinctMembers ( asof:Asserted asof:Supported asof:Contested asof:Refuted asof:Retracted asof:Superseded ) .
+
+asof:StatusAssignment a owl:Class ;
+    rdfs:label "status assignment"@en ;
+    rdfs:subClassOf prov:Entity ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty asof:assignsStatus ;
+                      owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass asof:EpistemicStatus ] ,
+                    [ a owl:Restriction ; owl:onProperty asof:statusOf ;
+                      owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass asof:TemporalStatement ] ,
+                    [ a owl:Restriction ; owl:onProperty asof:hasRecordTime ;
+                      owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass asof:RecordTimeInterval ] ;
+    skos:definition "The status of one statement during one record-time interval. A statement's status history is the set of its assignments."@en .
+
+#################################################################
+# Properties
+#################################################################
+
+asof:hasValidTime a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:label "has valid time"@en ;
+    rdfs:domain asof:TemporalStatement ; rdfs:range asof:ValidTimeInterval .
+asof:isValidTimeOf a owl:ObjectProperty ; rdfs:label "is valid time of"@en ; owl:inverseOf asof:hasValidTime .
+
+asof:hasRecordTime a owl:ObjectProperty ;
+    rdfs:label "has record time"@en ;
+    skos:definition "Relates a statement or status assignment to the interval during which it was in the record."@en ;
+    rdfs:range asof:RecordTimeInterval .
+
+asof:occursDuring a owl:ObjectProperty ; rdfs:label "occurs during"@en ; rdfs:range time:ProperInterval ;
+    rdfs:subPropertyOf obo:BFO_0000199 .
+
+asof:earliest a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:label "earliest"@en ; rdfs:domain asof:IndeterminateInstant ; rdfs:range xsd:dateTimeStamp .
+asof:latest   a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:label "latest"@en ; rdfs:domain asof:IndeterminateInstant ; rdfs:range xsd:dateTimeStamp .
+
+asof:hasCutoff a owl:DatatypeProperty , owl:FunctionalProperty ;
+    rdfs:label "has snapshot cutoff"@en ; rdfs:domain asof:Prediction ; rdfs:range xsd:dateTimeStamp .
+asof:usedInput a owl:ObjectProperty ; rdfs:label "used input"@en ;
+    rdfs:domain asof:Prediction ; rdfs:range asof:TemporalStatement .
+
+asof:assignsStatus a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:label "assigns status"@en ; rdfs:domain asof:StatusAssignment ; rdfs:range asof:EpistemicStatus .
+asof:statusOf      a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:label "status of"@en ; rdfs:domain asof:StatusAssignment ; rdfs:range asof:TemporalStatement .
+
+asof:supersedes a owl:ObjectProperty , owl:AsymmetricProperty , owl:IrreflexiveProperty ;
+    rdfs:label "supersedes"@en ;
+    rdfs:domain asof:TemporalStatement ; rdfs:range asof:TemporalStatement ;
+    rdfs:subPropertyOf asof:supersedesTransitively ;
+    skos:definition "Holds when a later statement from the same or a more authoritative source replaces an earlier one on the same subject and predicate."@en .
+asof:supersedesTransitively a owl:ObjectProperty , owl:TransitiveProperty ;
+    rdfs:label "supersedes (transitively)"@en ;
+    skos:definition "Inferred transitive closure of supersedes: a later statement replaces every statement in the chain it replaced."@en .
+
+asof:contradicts a owl:ObjectProperty , owl:SymmetricProperty , owl:IrreflexiveProperty ;
+    rdfs:label "contradicts"@en ;
+    rdfs:domain asof:TemporalStatement ; rdfs:range asof:TemporalStatement .
+
+asof:validBefore a owl:ObjectProperty ;
+    rdfs:label "valid before"@en ;
+    owl:propertyChainAxiom ( asof:hasValidTime time:intervalBefore asof:isValidTimeOf ) ;
+    skos:definition "Inferred: the first statement stops holding before the second starts to hold."@en .
+
+asof:validDisjointFrom a owl:ObjectProperty , owl:SymmetricProperty ;
+    rdfs:label "valid disjoint from"@en ;
+    skos:definition "Inferred: the two statements never hold at the same time."@en ;
+    owl:propertyChainAxiom ( asof:hasValidTime time:intervalDisjoint asof:isValidTimeOf ) .
+asof:validBefore rdfs:subPropertyOf asof:validDisjointFrom .
+
+asof:validMeets a owl:ObjectProperty ;
+    rdfs:label "valid meets"@en ;
+    owl:propertyChainAxiom ( asof:hasValidTime time:intervalMeets asof:isValidTimeOf ) ;
+    skos:definition "Inferred: the second statement starts to hold at the instant the first stops holding (OWL-Time interval meets)."@en .
+asof:validMeets rdfs:subPropertyOf asof:validDisjointFrom .
+
+
+asof:supersedes owl:propertyDisjointWith asof:contradicts .
+
+asof:inRegion a owl:ObjectProperty ; rdfs:label "in region"@en ; rdfs:range asof:Region .
+asof:conditionalOnLineage a owl:ObjectProperty ; rdfs:range asof:Lineage ;
+    rdfs:label "conditional on lineage"@en .
+asof:notActiveAgainst a owl:ObjectProperty ; rdfs:label "not active against"@en ; rdfs:domain biolink:ChemicalEntity ; rdfs:range asof:Lineage .
+
+asof:AuthorizationStatement a owl:Class ;
+    rdfs:label "authorization statement"@en ;
+    rdfs:subClassOf asof:TemporalStatement ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty asof:inRegion ; owl:someValuesFrom asof:Region ] ;
+    skos:definition "A statement that a regulator permits use of a product for an indication in a region during the valid-time interval."@en .
+
+asof:ExpectedActivityRevoked a owl:Class ;
+    rdfs:label "authorization lapsed for loss of activity"@en ;
+    rdfs:subClassOf asof:AuthorizationStatement ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty asof:conditionalOnLineage ; owl:someValuesFrom asof:Lineage ] ;
+    skos:definition "An authorization whose validity ended because a circulating lineage was not expected to respond to the product."@en .
+
+#################################################################
+# OWL 2 DL datatype reasoning over time: a decision instant falls in a window
+#################################################################
+
+asof:InstantInBebtelovimabWindow a owl:Class ;
+    rdfs:label "instant inside the bebtelovimab U.S. authorization window"@en ;
+    owl:equivalentClass [ a owl:Class ; owl:intersectionOf ( time:Instant
+        [ a owl:Restriction ; owl:onProperty time:inXSDDateTimeStamp ;
+          owl:someValuesFrom [ a rdfs:Datatype ; owl:onDatatype xsd:dateTimeStamp ;
+                               owl:withRestrictions ( [ xsd:minInclusive "2022-02-11T00:00:00-05:00"^^xsd:dateTimeStamp ]
+                                                      [ xsd:maxExclusive "2022-11-30T00:00:00-05:00"^^xsd:dateTimeStamp ] ) ] ] ) ] ;
+    skos:definition "Classifies any decision instant inside the valid time of ex:stmt-bebtelovimab-eua. AsOf-KG generates one such class from the valid time of each authorization statement."@en .
+
+#################################################################
+# SHACL shapes: numeric temporal constraints checked by any SHACL-SPARQL engine
+#################################################################
+
+asof:IntervalOrderShape a sh:NodeShape ;
+    sh:targetClass time:ProperInterval ;
+    sh:sparql [ a sh:SPARQLConstraint ;
+        sh:message "Interval ends before or when it begins." ;
+        sh:prefixes <https://w3id.org/asof-kg/ontology> ;
+        sh:select """SELECT $this WHERE {
+            $this time:hasBeginning/time:inXSDDateTimeStamp ?b ;
+                  time:hasEnd/time:inXSDDateTimeStamp ?e .
+            FILTER (xsd:dateTime(STR(?e)) <= xsd:dateTime(STR(?b))) }""" ] .
+
+asof:NoEarlyRecordShape a sh:NodeShape ;
+    sh:targetClass asof:TemporalStatement ;
+    sh:sparql [ a sh:SPARQLConstraint ;
+        sh:message "Statement enters the record before the source record it is derived from was published (record-time leakage)." ;
+        sh:prefixes <https://w3id.org/asof-kg/ontology> ;
+        sh:select """SELECT $this WHERE {
+            $this asof:hasRecordTime/time:hasBeginning/time:inXSDDateTimeStamp ?r ;
+                  prov:wasDerivedFrom/prov:generatedAtTime ?g .
+            FILTER (xsd:dateTime(STR(?r)) < xsd:dateTime(STR(?g))) }""" ] .
+
+asof:NoLeakagePredictionShape a sh:NodeShape ;
+    sh:targetClass asof:Prediction ;
+    sh:sparql [ a sh:SPARQLConstraint ;
+        sh:message "Prediction used an input that entered the record after the prediction's snapshot cutoff (temporal leakage)." ;
+        sh:prefixes <https://w3id.org/asof-kg/ontology> ;
+        sh:select """SELECT $this WHERE {
+            $this asof:hasCutoff ?c ;
+                  asof:usedInput/asof:hasRecordTime/time:hasBeginning/time:inXSDDateTimeStamp ?r .
+            FILTER (xsd:dateTime(STR(?r)) > xsd:dateTime(STR(?c))) }""" ] .
+
+asof:SupersessionOrderShape a sh:NodeShape ;
+    sh:targetSubjectsOf asof:supersedes ;
+    sh:sparql [ a sh:SPARQLConstraint ;
+        sh:message "A statement cannot supersede a statement that entered the record later than it did." ;
+        sh:prefixes <https://w3id.org/asof-kg/ontology> ;
+        sh:select """SELECT $this WHERE {
+            $this asof:supersedes ?old .
+            $this asof:hasRecordTime/time:hasBeginning/time:inXSDDateTimeStamp ?rNew .
+            ?old  asof:hasRecordTime/time:hasBeginning/time:inXSDDateTimeStamp ?rOld .
+            FILTER (xsd:dateTime(STR(?rNew)) < xsd:dateTime(STR(?rOld))) }""" ] .
+
+asof:IndeterminateBoundsShape a sh:NodeShape ;
+    sh:targetClass asof:IndeterminateInstant ;
+    sh:property [ sh:path asof:earliest ; sh:lessThanOrEquals asof:latest ;
+                  sh:message "Earliest bound is later than latest bound." ] .
+
+<https://w3id.org/asof-kg/ontology>
+    sh:declare [ sh:prefix "time" ; sh:namespace "http://www.w3.org/2006/time#"^^xsd:anyURI ] ,
+               [ sh:prefix "prov" ; sh:namespace "http://www.w3.org/ns/prov#"^^xsd:anyURI ] ,
+               [ sh:prefix "asof" ; sh:namespace "https://w3id.org/asof-kg/ontology#"^^xsd:anyURI ] ,
+               [ sh:prefix "xsd" ; sh:namespace "http://www.w3.org/2001/XMLSchema#"^^xsd:anyURI ] .
+
+#################################################################
+# Worked example (ABox): public FDA and CDC records, 2022
+#################################################################
+
+ex:bebtelovimab a biolink:ChemicalEntity , owl:NamedIndividual ;
+    rdfs:label "bebtelovimab"@en ; skos:exactMatch obo:CHEBI_758522 , mesh:C000716927 ;
+    rdfs:seeAlso <https://rxnav.nlm.nih.gov/REST/rxcui/2592360/properties.json> ;
+    rdfs:comment "RxNorm ingredient RXCUI 2592360 (NLM RxNav)."@en .
+ex:covid19 a biolink:Disease , owl:NamedIndividual ;
+    rdfs:label "COVID-19"@en ; skos:exactMatch obo:MONDO_0100096 , mesh:D000086382 .
+ex:usa a asof:Region , owl:NamedIndividual ; rdfs:label "United States"@en ; skos:exactMatch obo:GAZ_00002459 .
+ex:BQ.1 a asof:Lineage , owl:NamedIndividual ; rdfs:label "BQ.1 (Pango lineage)"@en ;
+    skos:broadMatch obo:NCBITaxon_2697049 , mesh:D000086402 .
+ex:BQ.1.1 a asof:Lineage , owl:NamedIndividual ; rdfs:label "BQ.1.1 (Pango lineage)"@en ;
+    skos:broadMatch obo:NCBITaxon_2697049 , mesh:D000086402 .
+ex:bebtelovimab asof:notActiveAgainst ex:BQ.1 , ex:BQ.1.1 .
+
+ex:fda-2022-02-11 a asof:SourceRecord , owl:NamedIndividual ;
+    rdfs:label "FDA update: emergency use authorization of bebtelovimab"@en ;
+    prov:generatedAtTime "2022-02-11T14:36:00-05:00"^^xsd:dateTime ;
+    rdfs:seeAlso <https://content.govdelivery.com/accounts/USFDA/bulletins/30a3e40> .
+ex:fda-2022-11-30 a asof:SourceRecord , owl:NamedIndividual ;
+    rdfs:label "FDA announcement: bebtelovimab not currently authorized in any U.S. region"@en ;
+    prov:generatedAtTime "2022-11-30T00:00:00-05:00"^^xsd:dateTime ;
+    rdfs:comment "FDA announcement of 2022-11-30. The FDA web page is no longer online; CDC Health Alert Network update CDCHAN-00483 (2022-12-20) records the announcement, its date and its reason."@en ;
+    rdfs:seeAlso <https://archive.cdc.gov/www_cdc_gov/han/2022/han00483.html> .
+
+# Statement as first published (Feb 11, 2022): valid from Feb 11, end unknown.
+ex:stmt-bebtelovimab-eua a asof:AuthorizationStatement , owl:NamedIndividual ;
+    biolink:subject ex:bebtelovimab ; biolink:predicate biolink:treats ; biolink:object ex:covid19 ;
+    biolink:knowledge_level biolink:knowledge_assertion ;
+    asof:inRegion ex:usa ;
+    asof:hasValidTime ex:vt-eua-open ;
+    asof:hasRecordTime ex:rt-eua-v1 ;
+    prov:wasDerivedFrom ex:fda-2022-02-11 .
+ex:vt-eua-open a asof:ValidTimeInterval , asof:OpenInterval , owl:NamedIndividual ;
+    time:hasBeginning ex:i-2022-02-11 .
+ex:rt-eua-v1 a asof:RecordTimeInterval , owl:NamedIndividual ;
+    time:hasBeginning ex:i-2022-02-11-pub ; time:hasEnd ex:i-2022-11-30 .
+
+# Revised statement (Nov 30, 2022): same authorization, valid time now closed.
+ex:stmt-bebtelovimab-eua-v2 a asof:ExpectedActivityRevoked , owl:NamedIndividual ;
+    biolink:subject ex:bebtelovimab ; biolink:predicate biolink:treats ; biolink:object ex:covid19 ;
+    biolink:knowledge_level biolink:knowledge_assertion ;
+    asof:inRegion ex:usa ;
+    asof:conditionalOnLineage ex:BQ.1 , ex:BQ.1.1 ;
+    asof:hasValidTime ex:vt-eua-closed ;
+    asof:hasRecordTime ex:rt-eua-v2 ;
+    prov:wasDerivedFrom ex:fda-2022-11-30 ;
+    asof:supersedes ex:stmt-bebtelovimab-eua .
+ex:vt-eua-closed a asof:ValidTimeInterval , owl:NamedIndividual ;
+    time:hasBeginning ex:i-2022-02-11 ; time:hasEnd ex:i-2022-11-30 .
+ex:rt-eua-v2 a asof:RecordTimeInterval , asof:OpenInterval , owl:NamedIndividual ;
+    time:hasBeginning ex:i-2022-11-30 .
+
+ex:status-v1-superseded a asof:StatusAssignment , owl:NamedIndividual ;
+    asof:statusOf ex:stmt-bebtelovimab-eua ; asof:assignsStatus asof:Superseded ;
+    asof:hasRecordTime ex:rt-eua-v2 .
+
+ex:i-2022-02-11 a time:Instant , owl:NamedIndividual ;
+    time:inXSDDateTimeStamp "2022-02-11T00:00:00-05:00"^^xsd:dateTimeStamp .
+ex:i-2022-02-11-pub a time:Instant , owl:NamedIndividual ;
+    time:inXSDDateTimeStamp "2022-02-11T14:36:00-05:00"^^xsd:dateTimeStamp .
+ex:i-2022-11-30 a time:Instant , owl:NamedIndividual ;
+    time:inXSDDateTimeStamp "2022-11-30T00:00:00-05:00"^^xsd:dateTimeStamp .
+
+# CDC surveillance estimate for one week, recorded three times: an example of a value revised in record time.
+# Values from data.cdc.gov dataset jr58-6ysp (USA, BQ.1.1, week_ending 2022-11-12), by creation_date.
+ex:cdc-release-2022-11-11 a asof:SourceRecord , owl:NamedIndividual ;
+    rdfs:label "CDC SARS-CoV-2 variant proportions release of 2022-11-11 (Nowcast)"@en ;
+    prov:generatedAtTime "2022-11-11T00:00:00-05:00"^^xsd:dateTime ;
+    rdfs:seeAlso <https://data.cdc.gov/Laboratory-Surveillance/SARS-CoV-2-Variant-Proportions/jr58-6ysp> .
+ex:cdc-release-2022-11-18 a asof:SourceRecord , owl:NamedIndividual ;
+    rdfs:label "CDC SARS-CoV-2 variant proportions release of 2022-11-18 (Nowcast, updated)"@en ;
+    prov:generatedAtTime "2022-11-18T00:00:00-05:00"^^xsd:dateTime ;
+    rdfs:seeAlso <https://data.cdc.gov/Laboratory-Surveillance/SARS-CoV-2-Variant-Proportions/jr58-6ysp> .
+ex:cdc-release-2022-12-02 a asof:SourceRecord , owl:NamedIndividual ;
+    rdfs:label "CDC SARS-CoV-2 variant proportions release of 2022-12-02 (weighted)"@en ;
+    prov:generatedAtTime "2022-12-02T00:00:00-05:00"^^xsd:dateTime ;
+    rdfs:seeAlso <https://data.cdc.gov/Laboratory-Surveillance/SARS-CoV-2-Variant-Proportions/jr58-6ysp> .
+
+ex:week-ending-2022-11-12 a asof:ValidTimeInterval , owl:NamedIndividual ;
+    time:hasBeginning ex:i-2022-11-06 ; time:hasEnd ex:i-2022-11-13 .
+ex:i-2022-11-06 a time:Instant , owl:NamedIndividual ; time:inXSDDateTimeStamp "2022-11-06T00:00:00-05:00"^^xsd:dateTimeStamp .
+ex:i-2022-11-13 a time:Instant , owl:NamedIndividual ; time:inXSDDateTimeStamp "2022-11-13T00:00:00-05:00"^^xsd:dateTimeStamp .
+ex:i-2022-11-11 a time:Instant , owl:NamedIndividual ; time:inXSDDateTimeStamp "2022-11-11T00:00:00-05:00"^^xsd:dateTimeStamp .
+ex:i-2022-11-18 a time:Instant , owl:NamedIndividual ; time:inXSDDateTimeStamp "2022-11-18T00:00:00-05:00"^^xsd:dateTimeStamp .
+ex:i-2022-12-02 a time:Instant , owl:NamedIndividual ; time:inXSDDateTimeStamp "2022-12-02T00:00:00-05:00"^^xsd:dateTimeStamp .
+
+ex:share-bq11-nowcast a asof:TemporalStatement , owl:NamedIndividual ;
+    rdfs:label "BQ.1.1 share of U.S. cases, week ending 2022-11-12, as published 2022-11-11: 0.241"@en ;
+    biolink:subject ex:BQ.1.1 ; biolink:object ex:usa ;
+    biolink:knowledge_level biolink:prediction ;
+    asof:hasValidTime ex:week-ending-2022-11-12 ;
+    asof:estimatedShare "0.241"^^xsd:decimal ;
+    asof:hasRecordTime ex:rt-nowcast ;
+    prov:wasDerivedFrom ex:cdc-release-2022-11-11 .
+ex:rt-nowcast a asof:RecordTimeInterval , owl:NamedIndividual ;
+    time:hasBeginning ex:i-2022-11-11 ; time:hasEnd ex:i-2022-11-18 .
+
+ex:share-bq11-nowcast-rev a asof:TemporalStatement , owl:NamedIndividual ;
+    rdfs:label "BQ.1.1 share of U.S. cases, week ending 2022-11-12, as published 2022-11-18: 0.184"@en ;
+    biolink:subject ex:BQ.1.1 ; biolink:object ex:usa ;
+    biolink:knowledge_level biolink:prediction ;
+    asof:hasValidTime ex:week-ending-2022-11-12 ;
+    asof:estimatedShare "0.184"^^xsd:decimal ;
+    asof:hasRecordTime ex:rt-nowcast-rev ;
+    prov:wasDerivedFrom ex:cdc-release-2022-11-18 ;
+    asof:supersedes ex:share-bq11-nowcast .
+ex:rt-nowcast-rev a asof:RecordTimeInterval , owl:NamedIndividual ;
+    time:hasBeginning ex:i-2022-11-18 ; time:hasEnd ex:i-2022-12-02 .
+
+ex:share-bq11-weighted a asof:TemporalStatement , owl:NamedIndividual ;
+    rdfs:label "BQ.1.1 share of U.S. cases, week ending 2022-11-12, as published 2022-12-02: 0.164"@en ;
+    biolink:subject ex:BQ.1.1 ; biolink:object ex:usa ;
+    biolink:knowledge_level biolink:knowledge_assertion ;
+    asof:hasValidTime ex:week-ending-2022-11-12 ;
+    asof:estimatedShare "0.164"^^xsd:decimal ;
+    asof:hasRecordTime ex:rt-weighted ;
+    prov:wasDerivedFrom ex:cdc-release-2022-12-02 ;
+    asof:supersedes ex:share-bq11-nowcast-rev .
+ex:rt-weighted a asof:RecordTimeInterval , asof:OpenInterval , owl:NamedIndividual ;
+    time:hasBeginning ex:i-2022-12-02 .
+
+# A decision instant: a prescribing check on 2022-10-15, classified by the OWL reasoner.
+ex:decision-2022-10-15 a time:Instant , owl:NamedIndividual ;
+    time:inXSDDateTimeStamp "2022-10-15T10:00:00-05:00"^^xsd:dateTimeStamp .
+
+# A model prediction computed from the snapshot of 2022-11-15. Its only input entered the record on 2022-11-11,
+# the latest CDC release available on that date.
+ex:pred-bebtelovimab-loss a asof:Prediction , owl:NamedIndividual ;
+    rdfs:label "Predicted: bebtelovimab authorization at risk in the United States within four weeks"@en ;
+    biolink:subject ex:bebtelovimab ; biolink:object ex:usa ;
+    biolink:knowledge_level biolink:prediction ;
+    asof:hasCutoff "2022-11-15T00:00:00-05:00"^^xsd:dateTimeStamp ;
+    asof:usedInput ex:share-bq11-nowcast ;
+    asof:hasValidTime ex:vt-pred ;
+    asof:hasRecordTime ex:rt-pred ;
+    prov:wasDerivedFrom ex:model-run-2022-11-15 .
+ex:model-run-2022-11-15 a asof:SourceRecord , owl:NamedIndividual ;
+    rdfs:label "Illustrative model run on the 2022-11-15 snapshot"@en ;
+    prov:generatedAtTime "2022-11-15T00:00:00-05:00"^^xsd:dateTime .
+ex:vt-pred a asof:ValidTimeInterval , owl:NamedIndividual ; time:hasBeginning ex:i-2022-11-15 ; time:hasEnd ex:i-2022-12-13 .
+ex:rt-pred a asof:RecordTimeInterval , asof:OpenInterval , owl:NamedIndividual ; time:hasBeginning ex:i-2022-11-15 .
+ex:i-2022-11-15 a time:Instant , owl:NamedIndividual ; time:inXSDDateTimeStamp "2022-11-15T00:00:00-05:00"^^xsd:dateTimeStamp .
+ex:i-2022-12-13 a time:Instant , owl:NamedIndividual ; time:inXSDDateTimeStamp "2022-12-13T00:00:00-05:00"^^xsd:dateTimeStamp .
+
+# Display labels for the worked-example individuals and the SHACL shapes (shown by Protege and other OWL tools).
+ex:stmt-bebtelovimab-eua rdfs:label "Bebtelovimab authorized to treat COVID-19 in the United States, as first published 2022-02-11"@en .
+ex:stmt-bebtelovimab-eua-v2 rdfs:label "Bebtelovimab authorization in the United States, revised 2022-11-30: valid 2022-02-11 to 2022-11-30"@en .
+ex:status-v1-superseded rdfs:label "Status of the 2022-02-11 authorization statement from 2022-11-30: superseded"@en .
+ex:vt-eua-open rdfs:label "valid time of the authorization as first published: from 2022-02-11, end not yet known"@en .
+ex:vt-eua-closed rdfs:label "valid time of the authorization as revised: 2022-02-11 to 2022-11-30"@en .
+ex:rt-eua-v1 rdfs:label "record time of the first authorization statement: 2022-02-11 to 2022-11-30"@en .
+ex:rt-eua-v2 rdfs:label "record time of the revised authorization statement: from 2022-11-30"@en .
+ex:week-ending-2022-11-12 rdfs:label "surveillance week ending 2022-11-12"@en .
+ex:rt-nowcast rdfs:label "record time of the 2022-11-11 estimate: 2022-11-11 to 2022-11-18"@en .
+ex:rt-nowcast-rev rdfs:label "record time of the 2022-11-18 estimate: 2022-11-18 to 2022-12-02"@en .
+ex:rt-weighted rdfs:label "record time of the 2022-12-02 estimate: from 2022-12-02"@en .
+ex:vt-pred rdfs:label "valid time of the prediction: 2022-11-15 to 2022-12-13"@en .
+ex:rt-pred rdfs:label "record time of the prediction: from 2022-11-15"@en .
+ex:decision-2022-10-15 rdfs:label "prescribing decision instant, 2022-10-15 10:00 (UTC-05:00)"@en .
+ex:i-2022-02-11 rdfs:label "2022-02-11 00:00 (UTC-05:00)"@en .
+ex:i-2022-02-11-pub rdfs:label "2022-02-11 14:36 (UTC-05:00), FDA bulletin published"@en .
+ex:i-2022-11-06 rdfs:label "2022-11-06 00:00 (UTC-05:00)"@en .
+ex:i-2022-11-11 rdfs:label "2022-11-11 00:00 (UTC-05:00)"@en .
+ex:i-2022-11-13 rdfs:label "2022-11-13 00:00 (UTC-05:00)"@en .
+ex:i-2022-11-15 rdfs:label "2022-11-15 00:00 (UTC-05:00)"@en .
+ex:i-2022-11-18 rdfs:label "2022-11-18 00:00 (UTC-05:00)"@en .
+ex:i-2022-11-30 rdfs:label "2022-11-30 00:00 (UTC-05:00)"@en .
+ex:i-2022-12-02 rdfs:label "2022-12-02 00:00 (UTC-05:00)"@en .
+ex:i-2022-12-13 rdfs:label "2022-12-13 00:00 (UTC-05:00)"@en .
+asof:IntervalOrderShape rdfs:label "SHACL shape: interval end after beginning"@en .
+asof:NoEarlyRecordShape rdfs:label "SHACL shape: no record time before source publication"@en .
+asof:NoLeakagePredictionShape rdfs:label "SHACL shape: no prediction input after snapshot cutoff"@en .
+asof:SupersessionOrderShape rdfs:label "SHACL shape: superseding statement enters the record later"@en .
+asof:IndeterminateBoundsShape rdfs:label "SHACL shape: earliest bound not after latest bound"@en .
