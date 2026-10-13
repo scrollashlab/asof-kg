@@ -25,8 +25,8 @@ This repository holds the ontology excerpt submitted with a Phase 1 concept pape
 
 The example uses public U.S. records from 2022:
 
-- FDA issued an emergency use authorization for bebtelovimab on February 11, 2022. On November 30, 2022, FDA announced that bebtelovimab was not authorized in any U.S. region, because of the BQ.1 and BQ.1.1 lineages (recorded in CDC Health Alert Network update CDCHAN-00483).
-- CDC's estimate of the U.S. share of BQ.1.1 for the week ending November 12, 2022 was revised twice: 0.241 in the release of November 11, 0.184 in the release of November 18, and 0.164 in the weighted estimate of December 2.
+- FDA issued an emergency use authorization for bebtelovimab on February 11, 2022. On November 30, 2022, FDA announced that bebtelovimab was not currently authorized in any U.S. region, because it was not expected to neutralize the BQ.1 and BQ.1.1 subvariants. The FDA page is no longer online; CDC Health Alert Network update CDCHAN-00483 records the announcement.
+- CDC's estimate of the U.S. share of BQ.1.1 for the week ending November 12, 2022 changed from release to release. The example holds three of them: 0.241 in the Nowcast of November 11, 0.184 in the Nowcast of November 18, and 0.164 in the weighted estimate of December 2.
 
 The same question about that week returns 0.241, 0.184 or 0.164, depending on the record date of the query (see `output/asof_query_output.txt`).
 
@@ -53,6 +53,10 @@ pip install -r requirements.txt
 
 W3C OWL-Time, W3C PROV-O, Biolink Model, BFO 2020, SKOS and SHACL. External identifiers in the example come from ChEBI, MONDO, MeSH, GAZ, NCBITaxon, IAO, STATO and RxNorm.
 
-## Licence
+## AI use
+
+Generative AI tools (Grok) were used extensively to research, draft, edit, and validate this entry, including ontology authoring and software for validation. The entrant directed the work, reviewed it, and is responsible for its content.
+
+## License
 
 The ontology (`ontology/`, `tests/`) is licensed under CC BY 4.0 (`LICENSE-ontology.txt`). The scripts are licensed under the MIT License (`LICENSE-code.txt`).
