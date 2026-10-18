@@ -7,7 +7,7 @@ AsOf-KG is a bitemporal extension for Biolink knowledge graphs. Every statement 
 
 A query names a record date *k* and a valid date *v*. It is answered only from statements that were in the record at *k*, so no answer can use information published after *k*.
 
-This repository holds the ontology excerpt submitted with a Phase 1 concept paper for the NIH challenge "It's About Time: Temporal Reasoning in Biomedical Knowledge Graphs." It also holds the scripts that check the ontology and run the as-of query.
+This repository holds the ontology excerpt prepared for a Phase 1 concept paper for the NIH challenge "It's About Time: Temporal Reasoning in Biomedical Knowledge Graphs." It also holds the scripts that check the ontology and run the as-of query.
 
 ## Contents
 
@@ -49,7 +49,7 @@ pip install -r requirements.txt
 - ROBOT: the file is in the OWL 2 DL profile.
 - Negative tests: interval order, leakage, record-before-source and supersede order are caught by SHACL. An ended open interval, a reversed supersession and an assignment with two statuses make the ontology inconsistent under HermiT.
 - Positive test: each of the three BQ.1.1 statements is inferred to be valid before, and valid disjoint from, the prediction statement.
-- Leakage check: 648 as-of queries (2 subjects, 18 record dates, 18 valid dates), no leaked or withdrawn statement, and every answer matches the Python version. A deliberately broken query with the record-date filter removed fails the check.
+- Leakage check: 648 as-of queries (2 subjects, 18 record dates, 18 valid dates), no leaked or withdrawn statement, and every answer matches the Python version.
 
 ## Reused vocabularies
 
